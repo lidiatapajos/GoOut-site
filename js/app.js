@@ -7,11 +7,12 @@ import { GOOUT_CATEGORIES } from './events.js';
   const CATEGORIES = GOOUT_CATEGORIES;
   const STORAGE_KEYS = { favorites: 'goout:favorites:v1', profile: 'goout:profile:v1', clientId: 'goout:client-id:v1' };
   const el = (id) => document.getElementById(id);
-  const defaultState = { search: '', category: 'todos', budget: 100, distance: 25, company: 'todos', day: 'todos', sort: 'relevancia', view: 'discover' };
+  const defaultState = { search: '', category: 'todos', budget: 100, distance: 25, company: 'todos', day: 'todos', sort: 'relevancia', view: 'home' };
   const state = {...defaultState};
   const formatMoney = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n);
   const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
   let toastTimeout;
+  let eventsLoading = true;
 
   function safeRead(key, fallback) {
     try { const value = JSON.parse(localStorage.getItem(key)); return value === null ? fallback : value; }
@@ -109,12 +110,17 @@ import { GOOUT_CATEGORIES } from './events.js';
   }
   function updateFavoriteCount(){el('favoriteCount').textContent=favorites.size;}
   function setMobileNav() {
-    document.querySelectorAll('[data-mobile-nav]').forEach(node => node.classList.toggle('selected',node.dataset.mobileNav===state.view));
-    el('mobileFavorites').classList.toggle('selected',state.view==='favorites');
-    el('navFavorites').classList.toggle('active',state.view==='favorites');
-    document.querySelector('[data-nav="discover"]').classList.toggle('active',state.view==='discover');
+    document.querySelectorAll('[data-mobile-nav]').forEach(node => node.classList.toggle('selected', node.dataset.mobileNav === state.view));
+    el('mobileFavorites').classList.toggle('selected', state.view === 'favorites');
+    el('navFavorites').classList.toggle('active', state.view === 'favorites');
+    document.querySelectorAll('.desktop-nav [data-nav]').forEach(node => {
+      node.classList.toggle('active', node.dataset.nav === state.view);
+    });
   }
   function render() {
+    el('homePage').hidden = state.view !== 'home';
+    el('descobrir').hidden = state.view === 'home';
+    el('filterPanel').hidden = state.view === 'favorites';
     renderChips();
     updateFavoriteCount();
     setMobileNav();
@@ -124,10 +130,15 @@ import { GOOUT_CATEGORIES } from './events.js';
     const list = el('eventsGrid');
     const empty = el('emptyState');
     list.innerHTML = results.map(cardHTML).join('');
-    empty.hidden = results.length !== 0;
+    empty.hidden = eventsLoading || results.length !== 0;
+    const previews = EVENTS.slice().sort((a,b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || dateObj(a) - dateObj(b)).slice(0, 3);
+    el('homeEventsGrid').innerHTML = previews.map((event, index) => cardHTML(event, index)).join('');
+    el('homePreviewStatus').textContent = eventsLoading
+      ? 'Carregando os eventos...'
+      : previews.length ? `${previews.length} sugestões do catálogo GoOut para começar:` : 'Nenhum evento disponível no momento.';
     el('viewOverline').textContent = state.view === 'favorites' ? 'SEUS ROLÊS GUARDADOS' : 'SUA PRÓXIMA DESCOBERTA';
     el('resultsTitle').innerHTML = state.view === 'favorites' ? 'MEUS <em>FAVORITOS</em> <span aria-hidden="true">♥</span>' : 'ROLÊS QUE <em>COMBINAM</em> COM VOCÊ <span aria-hidden="true">↘</span>';
-    el('resultCount').textContent = `${results.length} rolê${results.length===1?'':'s'} encontrado${results.length===1?'':'s'} · catálogo GoOut`;
+    el('resultCount').textContent = eventsLoading ? 'Carregando eventos...' : `${results.length} rolê${results.length===1?'':'s'} encontrado${results.length===1?'':'s'} · catálogo GoOut`;
     el('demoNote').hidden = EVENTS.length === 0;
     el('demoNoteText').textContent = EVENTS.some(event => event.is_demo)
       ? 'O catálogo ainda contém exemplos fictícios identificados nos cards. Remova-os e cadastre eventos conferidos antes de divulgar a agenda.'
@@ -177,21 +188,33 @@ import { GOOUT_CATEGORIES } from './events.js';
     renderDetail(e);
     el('eventDialog').showModal();
   }
-  function switchView(view) {
-    state.view=view;
-    if(view==='favorites') {
-      // Ao abrir salvos, mostramos todos os favoritos mesmo se os filtros anteriores eram restritivos.
-      clearFilterValues(false);
-    }
+  function switchView(view, section = null) {
+    state.view = view;
+    if (view === 'favorites') clearFilterValues(false);
+    const hash = section === 'como-funciona' ? '#como-funciona' : view === 'favorites' ? '#salvos' : view === 'home' ? '#inicio' : '#descobrir';
+    if (window.location.hash !== hash) window.history.pushState({}, '', hash);
     render();
-    el('descobrir').scrollIntoView({behavior:'smooth'});
+    requestAnimationFrame(() => {
+      if (section === 'como-funciona') {
+        el('como-funciona').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+  function restoreViewFromUrl() {
+    const hash = window.location.hash;
+    state.view = hash === '#salvos' ? 'favorites' : hash === '#descobrir' ? 'discover' : 'home';
+    if (state.view === 'favorites') clearFilterValues(false);
+    render();
+    if (hash === '#como-funciona') requestAnimationFrame(() => el('como-funciona').scrollIntoView());
   }
   function clearFilterValues(reRender=true) {
     Object.assign(state,{search:'',category:'todos',budget:100,distance:25,company:'todos',day:'todos',sort:'relevancia'});
     el('searchInput').value='';el('budgetRange').value='100';el('distanceRange').value='25';el('companySelect').value='todos';el('dateSelect').value='todos';el('sortSelect').value='relevancia';
     if(reRender) render();
   }
-  function resetAll() { state.view='discover';clearFilterValues(); }
+  function resetAll() { clearFilterValues(false); switchView('discover'); }
   function surprise() {
     const options = matching();
     if(!options.length) { notify('Sem opções com esses filtros. Tenta limpar os filtros!');return; }
@@ -229,10 +252,12 @@ import { GOOUT_CATEGORIES } from './events.js';
       const chip=e.target.closest('[data-category]');if(!chip)return;
       state.category=chip.dataset.category;render();
     });
-    el('eventsGrid').addEventListener('click',e=>{
+    const onCardClick = e => {
       const fav=e.target.closest('[data-favorite]');if(fav){toggleFavorite(+fav.dataset.favorite);return;}
       const open=e.target.closest('[data-open]');if(open)openDetail(+open.dataset.open);
-    });
+    };
+    el('eventsGrid').addEventListener('click', onCardClick);
+    el('homeEventsGrid').addEventListener('click', onCardClick);
     el('eventDialog').addEventListener('click',e=>{
       const fav=e.target.closest('[data-favorite]');if(fav){toggleFavorite(+fav.dataset.favorite);return;}
       const share=e.target.closest('[data-share]');if(share){shareEvent(+share.dataset.share);return;}
@@ -253,11 +278,18 @@ import { GOOUT_CATEGORIES } from './events.js';
         console.error('Não foi possível salvar o perfil neste navegador.', error);
       }
       state.company=profile.company;el('companySelect').value=profile.company;
-      state.view='discover';syncProfile();render();el('profileDialog').close();
+      syncProfile();switchView('discover');el('profileDialog').close();
       notify(profileStored?'Sua vibe está salva neste navegador ✳':'Perfil salvo apenas nesta sessão: o navegador bloqueou o armazenamento local.');
     });
     document.querySelectorAll('[data-view="favorites"]').forEach(b=>b.addEventListener('click',()=>switchView('favorites')));
-    document.querySelectorAll('[data-mobile-nav="discover"]').forEach(a=>a.addEventListener('click',()=>{state.view='discover';render();}));
+    document.querySelectorAll('[data-nav], [data-mobile-nav]').forEach(node => node.addEventListener('click', event => {
+      event.preventDefault();
+      const destination = node.dataset.nav || node.dataset.mobileNav;
+      if (destination === 'how') switchView('home', 'como-funciona');
+      else if (destination === 'home' || destination === 'discover') switchView(destination);
+    }));
+    window.addEventListener('popstate', restoreViewFromUrl);
+    window.addEventListener('hashchange', restoreViewFromUrl);
     el('clearFilters').addEventListener('click',resetAll);el('emptyReset').addEventListener('click',resetAll);
     el('surpriseHero').addEventListener('click',surprise);el('surpriseBottom').addEventListener('click',surprise);
     el('filterToggle').addEventListener('click',()=>{
@@ -265,12 +297,14 @@ import { GOOUT_CATEGORIES } from './events.js';
       panel.classList.toggle('is-hidden',expanded);el('filterToggle').setAttribute('aria-expanded',String(!expanded));
     });
   }
-  async function loadData() {
-    clientId = getClientId();
+  async function loadEvents() {
     const { events } = await apiRequest('/api/events');
     if (!Array.isArray(events)) throw new Error('A resposta da API não contém uma lista de eventos.');
-    EVENTS.push(...events);
-
+    EVENTS.splice(0, EVENTS.length, ...events);
+    eventsLoading = false;
+    render();
+  }
+  async function loadFavorites() {
     const saved = await apiRequest(`/api/favorites/${encodeURIComponent(clientId)}`);
     if (!Array.isArray(saved.eventIds)) throw new Error('A resposta da API não contém uma lista de favoritos.');
     const validServerIds = saved.eventIds.filter(id => Number.isSafeInteger(id) && EVENTS.some(event => event.id === id));
@@ -278,31 +312,40 @@ import { GOOUT_CATEGORIES } from './events.js';
     if (!validServerIds.length && Array.isArray(legacy)) {
       const legacyIds = [...new Set(legacy.filter(id => Number.isSafeInteger(id) && EVENTS.some(event => event.id === id)))];
       for (const eventId of legacyIds) {
-        await apiRequest('/api/favorites', {
-          method: 'POST',
-          body: JSON.stringify({ clientId, eventId })
-        });
+        await apiRequest('/api/favorites', { method: 'POST', body: JSON.stringify({ clientId, eventId }) });
       }
       validServerIds.push(...legacyIds);
     }
     favorites = new Set(validServerIds);
     if (storageAvailable) localStorage.removeItem(STORAGE_KEYS.favorites);
+    render();
   }
   async function init() {
     syncProfile();
     wireEvents();
+    clientId = getClientId();
+    restoreViewFromUrl();
     try {
-      await loadData();
-      render();
-      if (!storageAvailable) notify('O navegador bloqueou o armazenamento local; favoritos não serão lembrados após fechar esta página.');
+      await loadEvents();
     } catch (error) {
-      console.error('Não foi possível iniciar o GoOut.', error);
-      el('resultCount').textContent='Não foi possível carregar os eventos. Verifique se a API está em execução e tente novamente.';
-      el('emptyState').hidden=false;
-      el('emptyState').querySelector('h3').textContent='Não foi possível conectar à API';
-      el('emptyState').querySelector('p').textContent=error.message;
+      eventsLoading = false;
+      render();
+      console.error('Não foi possível carregar os eventos do GoOut.', error);
+      el('resultCount').textContent = 'Falha ao carregar os eventos. Verifique a conexão com a API.';
+      el('homePreviewStatus').textContent = 'Não foi possível carregar eventos. Confira se a API está disponível.';
+      el('emptyState').hidden = false;
+      el('emptyState').querySelector('h3').textContent = 'Não foi possível conectar à API';
+      el('emptyState').querySelector('p').textContent = error.message;
       notify(`Falha ao carregar o GoOut: ${error.message}`);
+      return;
     }
+    try {
+      await loadFavorites();
+    } catch (error) {
+      console.error('Os eventos carregaram, mas não foi possível sincronizar os favoritos.', error);
+      notify('Eventos carregados. Seus favoritos estão temporariamente indisponíveis.');
+    }
+    if (!storageAvailable) notify('O armazenamento local está bloqueado; favoritos não serão lembrados após fechar esta página.');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

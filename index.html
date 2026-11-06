@@ -18,9 +18,10 @@
   <a href="#descobrir" class="skip-link">Pular para os eventos</a>
   <header class="site-header" id="topo">
     <div class="container-xl header-inner">
-      <a href="#topo" class="brand" aria-label="GoOut — início"><span>Go</span><span class="brand-out">Out<span class="brand-spark">✳</span></span></a>
+      <a href="#inicio" class="brand" data-nav="home" aria-label="GoOut — início"><span>Go</span><span class="brand-out">Out<span class="brand-spark">✳</span></span></a>
       <nav class="desktop-nav" aria-label="Menu principal">
-        <a class="nav-link-site active" href="#descobrir" data-nav="discover">Descobrir</a>
+        <a class="nav-link-site active" href="#inicio" data-nav="home">Início</a>
+        <a class="nav-link-site" href="#descobrir" data-nav="discover">Explorar</a>
         <a class="nav-link-site" href="#como-funciona" data-nav="how">Como funciona</a>
         <button class="nav-link-site nav-button" id="navFavorites" type="button" data-view="favorites">Salvos <span class="count-bubble" id="favoriteCount">0</span></button>
       </nav>
@@ -31,14 +32,15 @@
     </div>
   </header>
 
-  <main>
+  <main id="inicio">
+    <div id="homePage" class="home-page">
     <section class="hero" aria-labelledby="heroTitle">
       <div class="container-xl hero-grid">
         <div class="hero-copy">
           <div class="eyebrow"><span class="eyebrow-dot"></span> SEU GUIA ANTITÉDIO EM BELÉM</div>
           <h1 id="heroTitle">FICAR EM CASA?<br><span class="hero-stroke">NEM PENSAR.</span><span class="hero-star" aria-hidden="true">✦</span></h1>
           <p>O rolê perfeito existe. A gente te ajuda a encontrar um que combine com seu bolso, sua vibe e sua galera.</p>
-          <div class="hero-buttons"><a href="#descobrir" class="btn-main btn-yellow">Encontrar meu rolê <span aria-hidden="true">↗</span></a><button class="btn-main btn-outline-light" id="surpriseHero" type="button">Me surpreenda ✳</button></div>
+          <div class="hero-buttons"><a href="#descobrir" data-nav="discover" class="btn-main btn-yellow">Encontrar meu rolê <span aria-hidden="true">↗</span></a><button class="btn-main btn-outline-light" id="surpriseHero" type="button">Me surpreenda ✳</button></div>
           <div class="hero-social"><span class="social-dot sd-red"></span><span class="social-dot sd-pink"></span><span class="social-dot sd-lime"></span> <span>Menos “o que fazer?”, mais histórias.</span></div>
         </div>
         <div class="hero-visual" aria-label="Colagem ilustrativa de eventos e experiências">
@@ -53,10 +55,30 @@
       <div class="hero-bottom-strip" aria-hidden="true"><div class="marquee-track">☻ SEU PRÓXIMO ROLÊ COMEÇA AQUI <span>✳</span> CULTURA + MÚSICA + COMIDA + DIVERSÃO <span>✳</span> MENOS TÉDIO, MAIS BELÉM <span>✳</span> ☻ SEU PRÓXIMO ROLÊ COMEÇA AQUI <span>✳</span> CULTURA + MÚSICA + COMIDA + DIVERSÃO <span>✳</span></div></div>
     </section>
 
-    <section class="discover-section" id="descobrir" aria-labelledby="discoverTitle">
+    <section class="mid-banner" id="como-funciona" aria-labelledby="howTitle"><div class="container-xl banner-wrap"><div class="banner-header"><span>01 / DO SEU JEITO</span><h2 id="howTitle">NÃO É SÓ SAIR.<br>É SAIR <em>COM A SUA CARA.</em></h2></div><div class="steps-row"><div class="step"><div class="step-icon" aria-hidden="true">01<span>✶</span></div><h3>CONTA SUA VIBE</h3><p>Escolha o que curte, seu orçamento e a distância ideal.</p></div><div class="step"><div class="step-icon" aria-hidden="true">02<span>↗</span></div><h3>DESCUBRA</h3><p>Compare eventos e encontre opções que fazem sentido.</p></div><div class="step"><div class="step-icon" aria-hidden="true">03<span>♥</span></div><h3>SALVE O ROLÊ</h3><p>Guarde seus favoritos e planeje seu próximo passeio.</p></div></div><div class="banner-deco" aria-hidden="true">✳</div></div></section>
+
+    <section class="home-events" id="home-events" aria-labelledby="homeEventsTitle">
       <div class="container-xl">
-        <div class="section-heading"><div><div class="section-kicker">01 / EXPLORE A CIDADE</div><h2 id="discoverTitle">QUAL É A <span>SUA VIBE?</span></h2><p>Escolhe o clima e deixa o resto com a gente.</p></div><div class="heading-stamp" aria-hidden="true"><span>BE-LÉM</span><small>GO OUT CLUB</small></div></div>
-        <div class="filter-panel">
+        <div class="home-events-header">
+          <div>
+            <div class="section-kicker">02 / SUA PRÓXIMA DESCOBERTA</div>
+            <h2 id="homeEventsTitle">JÁ TEM <span>ROLÊ</span> TE ESPERANDO.</h2>
+            <p>Uma prévia dos eventos do catálogo. Quer mais opções? Explore e filtre do seu jeito.</p>
+          </div>
+          <a href="#descobrir" class="btn-main btn-blue" data-nav="discover">Ver todos os eventos ↗</a>
+        </div>
+        <p id="homePreviewStatus" class="home-events-status" role="status" aria-live="polite">Carregando os eventos...</p>
+        <div id="homeEventsGrid" class="events-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="cta-section"><div class="container-xl"><div class="cta-card"><div class="cta-star" aria-hidden="true">✷</div><div><span>SEM IDEIA PRA HOJE?</span><h2>DEIXA A SORTE<br>ESCOLHER. <em>VAI!</em></h2></div><button type="button" class="btn-main btn-white" id="surpriseBottom">SORTear um rolê <span aria-hidden="true">↗</span></button></div></div></section>
+    </div>
+
+    <section class="discover-section" hidden id="descobrir" aria-labelledby="discoverTitle">
+      <div class="container-xl">
+        <div class="section-heading"><div><div class="section-kicker">03 / EXPLORE A CIDADE</div><h2 id="discoverTitle">QUAL É A <span>SUA VIBE?</span></h2><p>Escolhe o clima e deixa o resto com a gente.</p></div><div class="heading-stamp" aria-hidden="true"><span>BE-LÉM</span><small>GO OUT CLUB</small></div></div>
+        <div class="filter-panel" id="filterPanel">
           <div class="search-row"><label class="search-box" for="searchInput"><span aria-hidden="true" class="search-icon">⌕</span><span class="sr-only">Buscar eventos</span><input id="searchInput" type="search" placeholder="Busque por um rolê, lugar ou estilo..." autocomplete="off"><kbd>GO!</kbd></label><button class="filter-expand" id="filterToggle" type="button" aria-controls="advancedFilters" aria-expanded="true"><span aria-hidden="true">☷</span> Filtros <span id="filterArrow" aria-hidden="true">⌃</span></button></div>
           <div class="category-chips" id="categoryChips" role="group" aria-label="Filtrar por categoria"></div>
           <div class="advanced-filters" id="advancedFilters">
@@ -74,14 +96,11 @@
       </div>
     </section>
 
-    <section class="mid-banner" id="como-funciona" aria-labelledby="howTitle"><div class="container-xl banner-wrap"><div class="banner-header"><span>02 / DO SEU JEITO</span><h2 id="howTitle">NÃO É SÓ SAIR.<br>É SAIR <em>COM A SUA CARA.</em></h2></div><div class="steps-row"><div class="step"><div class="step-icon" aria-hidden="true">01<span>✶</span></div><h3>CONTA SUA VIBE</h3><p>Escolha o que curte, seu orçamento e a distância ideal.</p></div><div class="step"><div class="step-icon" aria-hidden="true">02<span>↗</span></div><h3>DESCUBRA</h3><p>Compare eventos e encontre opções que fazem sentido.</p></div><div class="step"><div class="step-icon" aria-hidden="true">03<span>♥</span></div><h3>SALVE O ROLÊ</h3><p>Guarde seus favoritos e planeje seu próximo passeio.</p></div></div><div class="banner-deco" aria-hidden="true">✳</div></div></section>
-
-    <section class="cta-section"><div class="container-xl"><div class="cta-card"><div class="cta-star" aria-hidden="true">✷</div><div><span>SEM IDEIA PRA HOJE?</span><h2>DEIXA A SORTE<br>ESCOLHER. <em>VAI!</em></h2></div><button type="button" class="btn-main btn-white" id="surpriseBottom">SORTear um rolê <span aria-hidden="true">↗</span></button></div></div></section>
   </main>
 
-  <footer class="site-footer"><div class="container-xl footer-grid"><div><a href="#topo" class="footer-logo">GO<span>OUT</span>✳</a><p>Viva mais a cidade, do seu jeito.</p></div><div class="footer-side"><span>FEITO PRA QUEM NÃO CURTE ROTINA.</span><small>Projeto acadêmico • Protótipo demonstrativo • 2026</small></div></div></footer>
+  <footer class="site-footer"><div class="container-xl footer-grid"><div><a href="#inicio" class="footer-logo" data-nav="home">GO<span>OUT</span>✳</a><p>Viva mais a cidade, do seu jeito.</p></div><div class="footer-side"><span>FEITO PRA QUEM NÃO CURTE ROTINA.</span><small>Projeto acadêmico • Protótipo demonstrativo • 2026</small></div></div></footer>
 
-  <nav class="mobile-bottom-nav" aria-label="Menu no celular"><a href="#descobrir" data-mobile-nav="discover" class="selected"><span aria-hidden="true">✳</span><small>Descobrir</small></a><button type="button" id="mobileFavorites" data-view="favorites"><span aria-hidden="true">♡</span><small>Salvos</small></button><button type="button" id="mobileProfile"><span aria-hidden="true">◉</span><small>Perfil</small></button></nav>
+  <nav class="mobile-bottom-nav" aria-label="Menu no celular"><a href="#inicio" data-mobile-nav="home" class="selected"><span aria-hidden="true">⌂</span><small>Início</small></a><a href="#descobrir" data-mobile-nav="discover"><span aria-hidden="true">✳</span><small>Explorar</small></a><button type="button" id="mobileFavorites" data-view="favorites"><span aria-hidden="true">♡</span><small>Salvos</small></button><button type="button" id="mobileProfile"><span aria-hidden="true">◉</span><small>Perfil</small></button></nav>
 
   <dialog id="eventDialog" class="site-dialog event-dialog" aria-labelledby="eventDialogTitle"><button class="dialog-x" data-close="eventDialog" type="button" aria-label="Fechar detalhes">×</button><div id="eventDialogContent"></div></dialog>
   <dialog id="profileDialog" class="site-dialog profile-dialog" aria-labelledby="profileDialogTitle"><button class="dialog-x" data-close="profileDialog" type="button" aria-label="Fechar perfil">×</button><div class="dialog-heading"><span class="section-kicker">SEU ESPAÇO</span><h2 id="profileDialogTitle">QUAL É A SUA <em>VIBE?</em></h2><p>Personalize o protótipo. Seus dados ficam apenas neste navegador.</p></div><form id="profileForm"><div class="mb-3"><label for="displayName" class="form-label">Como quer ser chamada(o)?</label><input id="displayName" class="form-control" maxlength="28" autocomplete="nickname" placeholder="Seu apelido"></div><div class="mb-3"><label for="profileCompany" class="form-label">Normalmente, com quem você sai?</label><select id="profileCompany" class="form-select"><option value="todos">Depende do dia</option><option value="sozinho">Sozinha(o)</option><option value="amigos">Com os amigos</option><option value="casal">A dois</option></select></div><button class="btn-main btn-blue w-100" type="submit">Salvar minha vibe ↗</button></form><p class="profile-disclaimer">Sem cadastro ou login real nesta versão de demonstração.</p></dialog>
