@@ -3,13 +3,26 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Protótipo web do GoOut — descoberta de eventos fictícios em Belém",
+  "description": "GoOut — descoberta e curadoria de eventos em Belém",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "concurrently -k -n api,web \"node --watch server/index.js\" \"vite --host 0.0.0.0\"",
+    "dev:api": "node --watch server/index.js",
+    "dev:web": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0"
   },
   "devDependencies": {
-    "vite": "^5.4.15"
+    "concurrently": "^9.2.1",
+    "vite": "^8.3.6"
   }
 }

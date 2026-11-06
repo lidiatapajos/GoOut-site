@@ -1,10 +1,11 @@
-/* GoOut — interface demonstrativa, 100% JavaScript puro.
-   Os dados de eventos em events.js são fictícios. */
+import { GOOUT_CATEGORIES } from './events.js';
+
+/* GoOut — interface JavaScript conectada à API REST. */
 (() => {
   'use strict';
-  const EVENTS = window.GOOUT_EVENTS || [];
-  const CATEGORIES = window.GOOUT_CATEGORIES || [];
-  const STORAGE_KEYS = { favorites: 'goout:favorites:v1', profile: 'goout:profile:v1' };
+  const EVENTS = [];
+  const CATEGORIES = GOOUT_CATEGORIES;
+  const STORAGE_KEYS = { favorites: 'goout:favorites:v1', profile: 'goout:profile:v1', clientId: 'goout:client-id:v1' };
   const el = (id) => document.getElementById(id);
   const defaultState = { search: '', category: 'todos', budget: 100, distance: 25, company: 'todos', day: 'todos', sort: 'relevancia', view: 'discover' };
   const state = {...defaultState};
@@ -16,11 +17,38 @@
     try { const value = JSON.parse(localStorage.getItem(key)); return value === null ? fallback : value; }
     catch { return fallback; }
   }
-  let favorites = new Set((safeRead(STORAGE_KEYS.favorites, []) || []).filter(id => Number.isInteger(id) && EVENTS.some(e => e.id === id)));
-  let profile = {...{name:'',company:'todos'}, ...safeRead(STORAGE_KEYS.profile,{})};
+  let favorites = new Set();
+  const savedProfile = safeRead(STORAGE_KEYS.profile, {});
+  let profile = {
+    name: typeof savedProfile?.name === 'string' ? savedProfile.name : '',
+    company: ['todos', 'sozinho', 'amigos', 'casal'].includes(savedProfile?.company) ? savedProfile.company : 'todos'
+  };
+  let clientId = '';
+  let storageAvailable = true;
 
-  function persistFavorites() {
-    try { localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify([...favorites])); } catch {/* modo privado */}
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...options.headers }
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.error || `A API respondeu com erro (${response.status}).`);
+    }
+    return response.status === 204 ? null : response.json();
+  }
+  function getClientId() {
+    try {
+      const existing = localStorage.getItem(STORAGE_KEYS.clientId);
+      if (existing && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(existing)) return existing;
+      const generated = crypto.randomUUID();
+      localStorage.setItem(STORAGE_KEYS.clientId, generated);
+      return generated;
+    } catch (error) {
+      storageAvailable = false;
+      console.error('Não foi possível persistir o identificador deste navegador.', error);
+      return crypto.randomUUID();
+    }
   }
   function notify(message) {
     const toast = el('toast');
@@ -67,13 +95,13 @@
     const isFav = favorites.has(e.id);
     return `<article class="event-card ${isFeatured?'featured':''}" aria-label="${safeText(e.title)}">
       <div class="event-art" style="--art-start:${e.colors[0]};--art-end:${e.colors[1]}">
-        <img class="event-photo" src="${e.image}" alt="Imagem ilustrativa do evento ${safeText(e.title)}" loading="lazy" onerror="this.style.display='none'">
+        <img class="event-photo" src="${safeText(e.image)}" alt="Imagem ilustrativa do evento ${safeText(e.title)}" loading="lazy" onerror="this.style.display='none'">
         <div class="event-photo-overlay"></div>
         <div class="event-date"><strong>${date.getDate().toString().padStart(2,'0')}</strong><span>${months[date.getMonth()]}</span></div>
         <button class="favorite-button ${isFav?'is-favorite':''}" type="button" data-favorite="${e.id}" aria-label="${isFav?'Remover dos':'Adicionar aos'} favoritos: ${safeText(e.title)}" aria-pressed="${isFav}">${isFav?'♥':'♡'}</button>
         <div class="event-art-title">${safeText(e.title)}</div>
       </div>
-      <div class="event-card-body"><div class="event-tags"><span class="tag ${e.accent==='green'?'green':e.accent==='blue'?'blue':''}">${safeText(catInfo(e.category).label)}</span>${e.price===0?'<span class="tag green">Grátis!</span>':''}</div>
+      <div class="event-card-body">      <div class="event-tags"><span class="tag ${e.accent==='green'?'green':e.accent==='blue'?'blue':''}">${safeText(catInfo(e.category).label)}</span>${e.is_demo?'<span class="tag green">FICTÍCIO</span>':''}${e.price===0?'<span class="tag green">Grátis!</span>':''}</div>
         <p class="event-description">${safeText(e.subtitle)}. ${safeText(e.description)}</p>
         <div class="event-facts"><span>◷ ${safeText(shortTime(e))}</span><span>⌖ ${safeText(e.neighborhood)}</span><span>↗ ${e.distance.toLocaleString('pt-BR')} km*</span></div>
         <div class="event-footer"><div class="event-price ${e.price===0?'is-free':''}"><small>A PARTIR DE</small>${e.price===0?'GRÁTIS':formatMoney(e.price)}</div><button class="event-open" data-open="${e.id}" type="button" aria-label="Ver detalhes de ${safeText(e.title)}">↗</button></div>
@@ -99,7 +127,11 @@
     empty.hidden = results.length !== 0;
     el('viewOverline').textContent = state.view === 'favorites' ? 'SEUS ROLÊS GUARDADOS' : 'SUA PRÓXIMA DESCOBERTA';
     el('resultsTitle').innerHTML = state.view === 'favorites' ? 'MEUS <em>FAVORITOS</em> <span aria-hidden="true">♥</span>' : 'ROLÊS QUE <em>COMBINAM</em> COM VOCÊ <span aria-hidden="true">↘</span>';
-    el('resultCount').textContent = `${results.length} rolê${results.length===1?'':'s'} encontrado${results.length===1?'':'s'} · catálogo demonstrativo`;
+    el('resultCount').textContent = `${results.length} rolê${results.length===1?'':'s'} encontrado${results.length===1?'':'s'} · catálogo GoOut`;
+    el('demoNote').hidden = EVENTS.length === 0;
+    el('demoNoteText').textContent = EVENTS.some(event => event.is_demo)
+      ? 'O catálogo ainda contém exemplos fictícios identificados nos cards. Remova-os e cadastre eventos conferidos antes de divulgar a agenda.'
+      : 'Eventos cadastrados pela equipe GoOut. Confirme horários, valores e disponibilidade com a organização antes de sair.';
     if (state.view==='favorites' && results.length===0) {
       empty.querySelector('h3').textContent = 'Ainda não tem favoritos por aqui!';
       empty.querySelector('p').textContent = 'Toque no coração de um evento para guardar suas ideias de rolê.';
@@ -108,21 +140,35 @@
       empty.querySelector('p').textContent = 'Tenta mudar os filtros. Tem muita coisa legal esperando por você.';
     }
   }
-  function toggleFavorite(id) {
+  async function toggleFavorite(id) {
     if(!EVENTS.some(e=>e.id===id)) return;
     const wasFav = favorites.has(id);
-    if(wasFav) favorites.delete(id); else favorites.add(id);
-    persistFavorites();render();
-    notify(wasFav?'Removido dos seus salvos ♡':'Rolê salvo! ♥');
-    const currentEventId = Number(el('eventDialog').dataset.eventId);
-    if(el('eventDialog').open && currentEventId===id) renderDetail(EVENTS.find(e=>e.id===id));
+    try {
+      if (wasFav) {
+        await apiRequest(`/api/favorites/${encodeURIComponent(clientId)}/${id}`, { method: 'DELETE' });
+        favorites.delete(id);
+      } else {
+        await apiRequest('/api/favorites', {
+          method: 'POST',
+          body: JSON.stringify({ clientId, eventId: id })
+        });
+        favorites.add(id);
+      }
+      render();
+      notify(wasFav?'Removido dos seus salvos ♡':'Rolê salvo! ♥');
+      const currentEventId = Number(el('eventDialog').dataset.eventId);
+      if(el('eventDialog').open && currentEventId===id) renderDetail(EVENTS.find(e=>e.id===id));
+    } catch (error) {
+      console.error('Não foi possível atualizar os favoritos.', error);
+      notify(`Não foi possível atualizar os favoritos: ${error.message}`);
+    }
   }
   function renderDetail(e) {
     el('eventDialog').dataset.eventId=e.id;
-    el('eventDialogContent').innerHTML=`<div class="detail-art" style="--art-start:${e.colors[0]};--art-end:${e.colors[1]}"><img src="${e.image}" alt="Imagem ilustrativa de ${safeText(e.title)}" onerror="this.style.display='none'"><h2 id="eventDialogTitle">${safeText(e.title)}</h2></div>
-      <div class="detail-body"><div class="event-tags"><span class="tag">${safeText(catInfo(e.category).label)}</span><span class="tag green">EVENTO FICTÍCIO</span></div><p>${safeText(e.description)}</p>
-      <div class="detail-facts"><div><small>QUANDO</small><strong>${safeText(longDate(e))}</strong></div><div><small>ONDE</small><strong>${safeText(e.location)} — ${safeText(e.neighborhood)}</strong></div><div><small>VALOR ILUSTRATIVO</small><strong>${e.price===0?'Grátis':formatMoney(e.price)}</strong></div><div><small>DISTÂNCIA ILUSTRATIVA</small><strong>${e.distance.toLocaleString('pt-BR')} km</strong></div><div><small>IDADE MÍNIMA</small><strong>${e.age===0?'Livre':`${e.age} anos`}</strong></div><div><small>COM QUEM?</small><strong>${e.company.map(companyLabel).join(' • ')}</strong></div></div>
-      <p><strong>Atenção:</strong> isto é apenas um protótipo acadêmico. Não é possível comprar ingresso ou confirmar a realização deste evento.</p>
+    el('eventDialogContent').innerHTML=`<div class="detail-art" style="--art-start:${e.colors[0]};--art-end:${e.colors[1]}"><img src="${safeText(e.image)}" alt="Imagem ilustrativa de ${safeText(e.title)}" onerror="this.style.display='none'"><h2 id="eventDialogTitle">${safeText(e.title)}</h2></div>
+      <div class="detail-body"><div class="event-tags"><span class="tag">${safeText(catInfo(e.category).label)}</span>${e.is_demo?'<span class="tag green">EVENTO FICTÍCIO</span>':''}</div><p>${safeText(e.description)}</p>
+      <div class="detail-facts"><div><small>QUANDO</small><strong>${safeText(longDate(e))}</strong></div><div><small>ONDE</small><strong>${safeText(e.location)} — ${safeText(e.neighborhood)}</strong></div><div><small>${e.is_demo?'VALOR ILUSTRATIVO':'VALOR INFORMADO'}</small><strong>${e.price===0?'Grátis':formatMoney(e.price)}</strong></div><div><small>DISTÂNCIA ${e.is_demo?'ILUSTRATIVA':'APROXIMADA'}</small><strong>${e.distance.toLocaleString('pt-BR')} km</strong></div><div><small>IDADE MÍNIMA</small><strong>${e.age===0?'Livre':`${e.age} anos`}</strong></div><div><small>COM QUEM?</small><strong>${e.company.map(companyLabel).join(' • ')}</strong></div></div>
+      <p><strong>Atenção:</strong> ${e.is_demo?'este evento é fictício e serve apenas para demonstração.':'confirme a realização, os horários e os valores com a organização. O GoOut não vende ingressos.'}</p>
       <div class="detail-actions"><button class="btn-main btn-blue" data-favorite="${e.id}" type="button">${favorites.has(e.id)?'♥ Tirar dos salvos':'♡ Salvar rolê'}</button><button class="btn-main btn-yellow" data-share="${e.id}" type="button">Compartilhar ↗</button></div></div>`;
   }
   function openDetail(id) {
@@ -163,7 +209,7 @@
   async function shareEvent(id) {
     const event = EVENTS.find(e=>e.id===id);
     if(!event) return;
-    const text=`Olha essa ideia de rolê fictício no GoOut: ${event.title} — ${event.location}. Catálogo de demonstração.`;
+    const text=`Olha essa ideia de rolê no GoOut: ${event.title} — ${event.location}.${event.is_demo?' Evento fictício de demonstração.':''}`;
     try {
       if(navigator.share) { await navigator.share({title:'GoOut — '+event.title,text});return; }
       if(navigator.clipboard && window.isSecureContext) {await navigator.clipboard.writeText(text);notify('Texto do rolê copiado!');return;}
@@ -199,9 +245,16 @@
     el('mobileProfile').addEventListener('click',openProfile);
     el('profileForm').addEventListener('submit',e=>{
       e.preventDefault();profile={name:el('displayName').value.trim().slice(0,28),company:el('profileCompany').value};
-      try{localStorage.setItem(STORAGE_KEYS.profile,JSON.stringify(profile));}catch{/* modo privado */}
+      let profileStored = true;
+      try {
+        localStorage.setItem(STORAGE_KEYS.profile,JSON.stringify(profile));
+      } catch (error) {
+        profileStored = false;
+        console.error('Não foi possível salvar o perfil neste navegador.', error);
+      }
       state.company=profile.company;el('companySelect').value=profile.company;
-      state.view='discover';syncProfile();render();el('profileDialog').close();notify('Sua vibe está salva neste navegador ✳');
+      state.view='discover';syncProfile();render();el('profileDialog').close();
+      notify(profileStored?'Sua vibe está salva neste navegador ✳':'Perfil salvo apenas nesta sessão: o navegador bloqueou o armazenamento local.');
     });
     document.querySelectorAll('[data-view="favorites"]').forEach(b=>b.addEventListener('click',()=>switchView('favorites')));
     document.querySelectorAll('[data-mobile-nav="discover"]').forEach(a=>a.addEventListener('click',()=>{state.view='discover';render();}));
@@ -212,6 +265,44 @@
       panel.classList.toggle('is-hidden',expanded);el('filterToggle').setAttribute('aria-expanded',String(!expanded));
     });
   }
-  function init() { if (!EVENTS.length) {el('resultCount').textContent='Não foi possível carregar os eventos.';return;} syncProfile();wireEvents();render(); }
+  async function loadData() {
+    clientId = getClientId();
+    const { events } = await apiRequest('/api/events');
+    if (!Array.isArray(events)) throw new Error('A resposta da API não contém uma lista de eventos.');
+    EVENTS.push(...events);
+
+    const saved = await apiRequest(`/api/favorites/${encodeURIComponent(clientId)}`);
+    if (!Array.isArray(saved.eventIds)) throw new Error('A resposta da API não contém uma lista de favoritos.');
+    const validServerIds = saved.eventIds.filter(id => Number.isSafeInteger(id) && EVENTS.some(event => event.id === id));
+    const legacy = safeRead(STORAGE_KEYS.favorites, []);
+    if (!validServerIds.length && Array.isArray(legacy)) {
+      const legacyIds = [...new Set(legacy.filter(id => Number.isSafeInteger(id) && EVENTS.some(event => event.id === id)))];
+      for (const eventId of legacyIds) {
+        await apiRequest('/api/favorites', {
+          method: 'POST',
+          body: JSON.stringify({ clientId, eventId })
+        });
+      }
+      validServerIds.push(...legacyIds);
+    }
+    favorites = new Set(validServerIds);
+    if (storageAvailable) localStorage.removeItem(STORAGE_KEYS.favorites);
+  }
+  async function init() {
+    syncProfile();
+    wireEvents();
+    try {
+      await loadData();
+      render();
+      if (!storageAvailable) notify('O navegador bloqueou o armazenamento local; favoritos não serão lembrados após fechar esta página.');
+    } catch (error) {
+      console.error('Não foi possível iniciar o GoOut.', error);
+      el('resultCount').textContent='Não foi possível carregar os eventos. Verifique se a API está em execução e tente novamente.';
+      el('emptyState').hidden=false;
+      el('emptyState').querySelector('h3').textContent='Não foi possível conectar à API';
+      el('emptyState').querySelector('p').textContent=error.message;
+      notify(`Falha ao carregar o GoOut: ${error.message}`);
+    }
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

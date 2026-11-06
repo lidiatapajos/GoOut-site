@@ -22,7 +22,7 @@ Identidade de pôster de festival: colagem, cards com borda preta e sombra deslo
 ```mermaid
 flowchart TD
     A[Home / Descobrir] --> B[Pesquisar e filtrar]
-    B --> C[Cards de eventos fictícios]
+    B --> C[Cards de eventos do SQLite via API]
     C --> D[Modal de detalhes]
     D --> E[Salvar favorito]
     E --> F[Meus salvos]
@@ -40,7 +40,7 @@ flowchart TD
 
 **Onde está:** HTML montado por `cardHTML()` em `js/app.js` e estilizado pela classe `.event-card` em `css/styles.css`.
 
-**Entrada:** objeto de `GOOUT_EVENTS` com `title`, `date`, `price`, `description`, `category`, etc.
+**Entrada:** objeto retornado por `GET /api/events`, com `title`, `date`, `price`, `description`, `category` e `is_demo`.
 
 **Ações:** botão coração chama `toggleFavorite(id)`; botão seta chama `openDetail(id)`.
 
@@ -61,27 +61,23 @@ flowchart TD
 ## Arquitetura atual e evolução
 
 ```text
-Hoje:
-Browser -> HTML / CSS / JS -> catálogo fictício em memória
-                           -> localStorage (favoritos e perfil)
+Browser -> HTML / CSS / JS -> API REST (Express)
+                                  |
+                                  +--> SQLite (eventos e favoritos anônimos)
+                                  +--> Rotas administrativas protegidas por token
 
-Evolução proposta:
-Browser (Bootstrap + JS)
-        |
-        v
-API REST (Node.js ou Python)
-        |
-        +--> Serviço de eventos / filtros
-        +--> Serviço de recomendação
-        +--> Persistência no PostgreSQL
-        +--> Integrações externas (futuras)
+Evolução futura:
+API REST -> fonte externa de eventos (quando houver acesso documentado)
+        -> autenticação de usuários e perfis multi-dispositivo
+        -> recomendação personalizada
 ```
 
-A versão entregue é propositalmente somente o **front-end**: a arquitetura completa do relatório acadêmico ainda não foi implementada.
+O banco começa com eventos fictícios para demonstração; o CRUD de eventos é feito pelas rotas administrativas e exige `ADMIN_API_TOKEN`. A busca pública de eventos da Eventbrite não está integrada.
 
 ## Notas de manutenção
 
 - As fotos ilustrativas são referenciadas por URLs externas do Unsplash e requerem internet.
-- O campo `distance` é um valor de demonstração; não há geolocalização nem cálculo de rota real.
-- O catálogo não deve ser publicado como agenda real.
+- O campo `distance` é informado no cadastro; não há geolocalização nem cálculo de rota real.
+- Os exemplos de demonstração não devem ser publicados como agenda real.
 - Ao integrar dados reais, validar disponibilidade, idade mínima, horários e origem das informações.
+- Em hospedagem, manter o arquivo SQLite em volume persistente e guardar o token administrativo como segredo do ambiente.

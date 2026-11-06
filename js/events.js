@@ -1,6 +1,4 @@
-/* Catálogo 100% fictício para demonstração.
-   Datas, preços, distâncias e eventos NÃO refletem agendas reais. */
-window.GOOUT_CATEGORIES = [
+export const GOOUT_CATEGORIES = [
   {id:'todos',label:'Tudo',emoji:'✳'},
   {id:'musica',label:'Música',emoji:'🎵'},
   {id:'gastronomia',label:'Gastronomia',emoji:'🍜'},
@@ -10,7 +8,7 @@ window.GOOUT_CATEGORIES = [
   {id:'esporte',label:'Esportes',emoji:'🏃'},
   {id:'tecnologia',label:'Geek',emoji:'🎮'}
 ];
-window.GOOUT_EVENTS = [
+export const GOOUT_DEMO_EVENTS = [
   {id:1,title:'NOITE TROPICAL',subtitle:'Música para dançar sem parar',category:'musica',date:'2026-11-07T19:00:00',location:'Estação das Docas',neighborhood:'Campina',price:45,distance:3.2,company:['amigos','casal','sozinho'],age:18,description:'Uma noite fictícia com ritmos paraenses, luzes e muita energia para sair da rotina.',image:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1100&q=80',colors:['#f03c64','#3a2d9e'],accent:'pink',featured:true},
   {id:2,title:'SABORES DA AMAZÔNIA',subtitle:'Experimente novos sabores',category:'gastronomia',date:'2026-11-08T15:00:00',location:'Praça da República',neighborhood:'Campina',price:0,distance:2.1,company:['amigos','casal','sozinho'],age:0,description:'Uma feira gastronômica imaginária de comidinhas, encontros e descobertas regionais.',image:'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=850&q=80',colors:['#ffbe57','#e85e45'],accent:'green'},
   {id:3,title:'CINEMA SOB AS ESTRELAS',subtitle:'Filme, pipoca e boa companhia',category:'cinema',date:'2026-11-13T19:30:00',location:'Parque da Residência',neighborhood:'São Brás',price:0,distance:4.8,company:['casal','amigos','sozinho'],age:16,description:'Uma sessão de cinema ao ar livre inventada para quem ama viver algo diferente.',image:'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=850&q=80',colors:['#4d4ad3','#111752'],accent:'blue'},
