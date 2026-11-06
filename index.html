@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2449F5">
+  <meta name="description" content="GoOut: descubra o seu próximo rolê em Belém de acordo com seus gostos, orçamento e companhia.">
+  <title>GoOut — Seu próximo rolê começa aqui</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/events.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a href="#descobrir" class="skip-link">Pular para os eventos</a>
+  <header class="site-header" id="topo">
+    <div class="container-xl header-inner">
+      <a href="#topo" class="brand" aria-label="GoOut — início"><span>GO</span><span class="brand-out">OUT<span class="brand-spark">✳</span></span></a>
+      <nav class="desktop-nav" aria-label="Menu principal">
+        <a class="nav-link-site active" href="#descobrir" data-nav="discover">Descobrir</a>
+        <a class="nav-link-site" href="#como-funciona" data-nav="how">Como funciona</a>
+        <button class="nav-link-site nav-button" id="navFavorites" type="button" data-view="favorites">Salvos <span class="count-bubble" id="favoriteCount">0</span></button>
+      </nav>
+      <div class="header-actions">
+        <span class="city-pill" aria-label="Cidade da demonstração"><span class="pin">●</span> Belém, PA</span>
+        <button class="profile-trigger" id="profileTrigger" type="button"><span class="avatar" id="avatarInitial">?</span><span id="profileLabel">Meu perfil</span><span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="container-xl hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> SEU GUIA ANTITÉDIO EM BELÉM</div>
+          <h1 id="heroTitle">FICAR EM CASA?<br><span class="hero-stroke">NEM PENSAR.</span><span class="hero-star" aria-hidden="true">✦</span></h1>
+          <p>O rolê perfeito existe. A gente te ajuda a encontrar um que combine com seu bolso, sua vibe e sua galera.</p>
+          <div class="hero-buttons"><a href="#descobrir" class="btn-main btn-yellow">Encontrar meu rolê <span aria-hidden="true">↗</span></a><button class="btn-main btn-outline-light" id="surpriseHero" type="button">Me surpreenda ✳</button></div>
+          <div class="hero-social"><span class="social-dot sd-red"></span><span class="social-dot sd-pink"></span><span class="social-dot sd-lime"></span> <span>Menos “o que fazer?”, mais histórias.</span></div>
+        </div>
+        <div class="hero-visual" aria-label="Colagem ilustrativa de eventos e experiências">
+          <div class="collage-deco deco-orb" aria-hidden="true"></div>
+          <div class="collage-deco deco-star" aria-hidden="true">✷</div>
+          <div class="hero-photo hp-one"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=850&q=80" alt="Público em festival iluminado" onerror="this.style.display='none'"><span>AO VIVO / AO MÁXIMO</span></div>
+          <div class="hero-photo hp-two"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=720&q=80" alt="Ambiente de restaurante acolhedor" onerror="this.style.display='none'"></div>
+          <div class="round-sticker">BORA<br>SAIR! <span>↗</span></div>
+          <div class="ticket-sticker">100% <strong>SUA VIBE</strong> <span>★ ★ ★</span></div>
+        </div>
+      </div>
+      <div class="hero-bottom-strip" aria-hidden="true"><div class="marquee-track">☻ SEU PRÓXIMO ROLÊ COMEÇA AQUI <span>✳</span> CULTURA + MÚSICA + COMIDA + DIVERSÃO <span>✳</span> MENOS TÉDIO, MAIS BELÉM <span>✳</span> ☻ SEU PRÓXIMO ROLÊ COMEÇA AQUI <span>✳</span> CULTURA + MÚSICA + COMIDA + DIVERSÃO <span>✳</span></div></div>
+    </section>
+
+    <section class="discover-section" id="descobrir" aria-labelledby="discoverTitle">
+      <div class="container-xl">
+        <div class="section-heading"><div><div class="section-kicker">01 / EXPLORE A CIDADE</div><h2 id="discoverTitle">QUAL É A <span>SUA VIBE?</span></h2><p>Escolhe o clima e deixa o resto com a gente.</p></div><div class="heading-stamp" aria-hidden="true"><span>BE-LÉM</span><small>GO OUT CLUB</small></div></div>
+        <div class="filter-panel">
+          <div class="search-row"><label class="search-box" for="searchInput"><span aria-hidden="true" class="search-icon">⌕</span><span class="sr-only">Buscar eventos</span><input id="searchInput" type="search" placeholder="Busque por um rolê, lugar ou estilo..." autocomplete="off"><kbd>GO!</kbd></label><button class="filter-expand" id="filterToggle" type="button" aria-controls="advancedFilters" aria-expanded="true"><span aria-hidden="true">☷</span> Filtros <span id="filterArrow" aria-hidden="true">⌃</span></button></div>
+          <div class="category-chips" id="categoryChips" role="group" aria-label="Filtrar por categoria"></div>
+          <div class="advanced-filters" id="advancedFilters">
+            <div class="filter-field"><label for="budgetRange">Meu orçamento <strong id="budgetValue">Até R$ 100</strong></label><input id="budgetRange" type="range" min="0" max="100" step="5" value="100" aria-describedby="budgetHelp"><small id="budgetHelp">Inclui eventos gratuitos</small></div>
+            <div class="filter-field"><label for="distanceRange">Até onde vou <strong id="distanceValue">Até 25 km</strong></label><input id="distanceRange" type="range" min="1" max="25" step="1" value="25"><small>Distâncias ilustrativas</small></div>
+            <div class="filter-field"><label for="companySelect">Vou com</label><select id="companySelect" class="form-select"><option value="todos">Tanto faz</option><option value="sozinho">Só eu</option><option value="amigos">Amigos</option><option value="casal">A dois</option></select></div>
+            <div class="filter-field"><label for="dateSelect">Quando?</label><select id="dateSelect" class="form-select"><option value="todos">Qualquer dia</option><option value="fimdesemana">Fim de semana</option><option value="semana">Dia de semana</option></select></div>
+          </div>
+        </div>
+        <div class="demo-note" role="note"><span aria-hidden="true">ⓘ</span><span><strong>Modo demonstração:</strong> os eventos, datas, preços e distâncias são fictícios. Não use como agenda real de Belém.</span></div>
+
+        <div class="results-heading"><div><span class="overline" id="viewOverline">SUA PRÓXIMA DESCOBERTA</span><h3 id="resultsTitle">ROLÊS QUE <em>COMBINAM</em> COM VOCÊ <span aria-hidden="true">↘</span></h3><span class="results-count" id="resultCount" aria-live="polite">Carregando eventos...</span></div><div class="results-actions"><label for="sortSelect" class="sort-label">Ordenar:</label><select id="sortSelect" aria-label="Ordenar eventos"><option value="relevancia">Pra você</option><option value="data">Mais próximos na data</option><option value="preco">Menor preço</option><option value="distancia">Menor distância</option></select><button class="clear-btn" id="clearFilters" type="button">Limpar filtros ↺</button></div></div>
+        <div class="events-grid" id="eventsGrid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state" hidden><div class="empty-illustration">(╥﹏╥)</div><h3>Esse rolê ainda não apareceu!</h3><p>Tenta mudar os filtros. Tem muita coisa legal esperando por você.</p><button class="btn-main btn-blue" id="emptyReset" type="button">Ver todos os eventos ↗</button></div>
+      </div>
+    </section>
+
+    <section class="mid-banner" id="como-funciona" aria-labelledby="howTitle"><div class="container-xl banner-wrap"><div class="banner-header"><span>02 / DO SEU JEITO</span><h2 id="howTitle">NÃO É SÓ SAIR.<br>É SAIR <em>COM A SUA CARA.</em></h2></div><div class="steps-row"><div class="step"><div class="step-icon" aria-hidden="true">01<span>✶</span></div><h3>CONTA SUA VIBE</h3><p>Escolha o que curte, seu orçamento e a distância ideal.</p></div><div class="step"><div class="step-icon" aria-hidden="true">02<span>↗</span></div><h3>DESCUBRA</h3><p>Compare eventos e encontre opções que fazem sentido.</p></div><div class="step"><div class="step-icon" aria-hidden="true">03<span>♥</span></div><h3>SALVE O ROLÊ</h3><p>Guarde seus favoritos e planeje seu próximo passeio.</p></div></div><div class="banner-deco" aria-hidden="true">✳</div></div></section>
+
+    <section class="cta-section"><div class="container-xl"><div class="cta-card"><div class="cta-star" aria-hidden="true">✷</div><div><span>SEM IDEIA PRA HOJE?</span><h2>DEIXA A SORTE<br>ESCOLHER. <em>VAI!</em></h2></div><button type="button" class="btn-main btn-white" id="surpriseBottom">SORTear um rolê <span aria-hidden="true">↗</span></button></div></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container-xl footer-grid"><div><a href="#topo" class="footer-logo">GO<span>OUT</span>✳</a><p>Viva mais a cidade, do seu jeito.</p></div><div class="footer-side"><span>FEITO PRA QUEM NÃO CURTE ROTINA.</span><small>Projeto acadêmico • Protótipo demonstrativo • 2026</small></div></div></footer>
+
+  <nav class="mobile-bottom-nav" aria-label="Menu no celular"><a href="#descobrir" data-mobile-nav="discover" class="selected"><span aria-hidden="true">✳</span><small>Descobrir</small></a><button type="button" id="mobileFavorites" data-view="favorites"><span aria-hidden="true">♡</span><small>Salvos</small></button><button type="button" id="mobileProfile"><span aria-hidden="true">◉</span><small>Perfil</small></button></nav>
+
+  <dialog id="eventDialog" class="site-dialog event-dialog" aria-labelledby="eventDialogTitle"><button class="dialog-x" data-close="eventDialog" type="button" aria-label="Fechar detalhes">×</button><div id="eventDialogContent"></div></dialog>
+  <dialog id="profileDialog" class="site-dialog profile-dialog" aria-labelledby="profileDialogTitle"><button class="dialog-x" data-close="profileDialog" type="button" aria-label="Fechar perfil">×</button><div class="dialog-heading"><span class="section-kicker">SEU ESPAÇO</span><h2 id="profileDialogTitle">QUAL É A SUA <em>VIBE?</em></h2><p>Personalize o protótipo. Seus dados ficam apenas neste navegador.</p></div><form id="profileForm"><div class="mb-3"><label for="displayName" class="form-label">Como quer ser chamada(o)?</label><input id="displayName" class="form-control" maxlength="28" autocomplete="nickname" placeholder="Seu apelido"></div><div class="mb-3"><label for="profileCompany" class="form-label">Normalmente, com quem você sai?</label><select id="profileCompany" class="form-select"><option value="todos">Depende do dia</option><option value="sozinho">Sozinha(o)</option><option value="amigos">Com os amigos</option><option value="casal">A dois</option></select></div><button class="btn-main btn-blue w-100" type="submit">Salvar minha vibe ↗</button></form><p class="profile-disclaimer">Sem cadastro ou login real nesta versão de demonstração.</p></dialog>
+  <div id="toast" class="site-toast" role="status" aria-live="polite"></div>
+</body>
+</html>

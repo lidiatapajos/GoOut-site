@@ -1,0 +1,15 @@
+{
+  "name": "goout-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Protótipo web do GoOut — descoberta de eventos fictícios em Belém",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.15"
+  }
+}
