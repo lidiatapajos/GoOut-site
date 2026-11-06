@@ -1,103 +1,127 @@
-# GoOut
+<h1 align="center">GoOut</h1>
+<p align="center"><strong>Ficar em casa? Nem pensar.</strong></p>
+<p align="center">Encontre seu próximo rolê em Belém, do seu jeito.</p>
 
-Aplicação web para descobrir e organizar eventos em Belém. A primeira versão de backend usa **Node.js + Express** e **SQLite**. O catálogo inicial contém exemplos fictícios identificados na interface; eventos reais precisam ser cadastrados e conferidos pela equipe GoOut.
+<p align="center">
+  <code>JavaScript</code> · <code>Bootstrap</code> · <code>Vite</code> · <code>Node.js</code> · <code>Express</code> · <code>SQLite</code>
+</p>
 
-## Requisitos
+<p align="center">
+  <a href="https://gooout.netlify.app/">Conheça o GoOut</a> ·
+  <a href="#como-rodar">Como rodar</a> ·
+  <a href="docs/GUIA-DO-PROJETO.md">Documentação</a>
+</p>
 
-- Node.js 20.19+ (ou 22.12+) e npm.
-- Para gravar eventos reais no catálogo, configure um token administrativo no servidor.
+---
 
-## Desenvolvimento local
+## A ideia
+
+Você quer sair, mas não sabe pra onde. Ou encontra um evento legal, só que ele fica longe demais ou passa do orçamento. O GoOut reúne opções de lazer para facilitar essa escolha.
+
+O projeto permite explorar eventos em Belém, combinar filtros e guardar os favoritos. A interface usa JavaScript puro e conversa com uma API em Express, que armazena eventos e favoritos em SQLite.
+
+## O que você encontra
+
+- **Busca de eventos** por nome, local, bairro, descrição ou categoria.
+- **Filtros combinados** de categoria, orçamento, distância, companhia e período da semana.
+- **Ordenação** por relevância, data, preço ou distância. A relevância prioriza os eventos marcados como destaque.
+- **Detalhes do rolê**, com horário, local, valor, idade mínima e companhia sugerida.
+- **Favoritos** para guardar ideias e consultar depois.
+- **Compartilhamento** das informações de um evento.
+- **Me surpreenda**, que sorteia uma opção entre os resultados dos filtros atuais.
+- **Perfil** com apelido e preferência de companhia.
+
+A navegação se adapta à tela: menu superior no computador e menu inferior no celular.
+
+## Como rodar
+
+### Requisitos
+
+- **Node.js 22.12 ou superior**, com npm. O projeto também aceita a série Node.js 20 a partir da versão 20.19.
+- Git, caso opte por clonar o repositório.
+- Internet para instalar as dependências e carregar Bootstrap, fontes e imagens externas.
+
+### Instalação
 
 ```bash
-npm install
-cp .env.example .env
-```
-
-Gere um segredo aleatório e substitua `ADMIN_API_TOKEN` no `.env`:
-
-```bash
-openssl rand -hex 32
-```
-
-Inicie API e front-end juntos:
-
-```bash
+git clone https://github.com/lidiatapajos/GoOut-site.git
+cd GoOut-site
+npm ci
 npm run dev
 ```
 
-Abra `http://localhost:5173`. O Vite encaminha `/api` para o Express em `http://localhost:3001`. A base SQLite é criada automaticamente em `data/goout.sqlite`.
+Abra **http://localhost:5173**, ou o endereço informado pelo Vite no terminal.
 
-Outros comandos:
+O comando inicia o front-end e a API juntos. O Vite encaminha as chamadas de `/api` para o Express na porta **3001**, e o banco é criado automaticamente em `data/goout.sqlite`.
 
-```bash
-npm test          # testes da API e do SQLite
-npm run build     # gera o front-end de produção em dist/
-npm start         # API + arquivos de dist/ em um único servidor
-```
+Para explorar o catálogo e usar favoritos localmente, não é necessário configurar um token administrativo. Para encerrar, pressione `Ctrl+C` no terminal.
 
-`npm start` usa `PORT` (padrão `3001`), `HOST` (padrão `0.0.0.0`), `DATABASE_PATH` e `ADMIN_API_TOKEN` do ambiente. Em produção, `ADMIN_API_TOKEN` é obrigatório. Use um volume persistente para o arquivo SQLite; o sistema de arquivos efêmero de algumas hospedagens apaga o banco ao reiniciar/reimplantar.
+> Abra o projeto pelo servidor de desenvolvimento. A versão atual depende da API para carregar eventos e salvar favoritos; abrir apenas `index.html` não inicia essa integração.
 
-## API
+### Comandos disponíveis
 
-- `GET /api/health` — estado da API e do banco.
-- `GET /api/events` — lista eventos.
-- `GET /api/events/:id` — detalhe de um evento.
-- `GET /api/favorites/:clientId` — favoritos do navegador.
-- `POST /api/favorites` — salva `{ "clientId": "<UUID>", "eventId": 1 }`.
-- `DELETE /api/favorites/:clientId/:eventId` — remove favorito.
-- `POST /api/admin/events` — cadastra evento.
-- `PUT /api/admin/events/:id` — atualiza evento completo.
-- `DELETE /api/admin/events/:id` — remove evento.
+| Comando | Para que serve |
+| --- | --- |
+| `npm run dev` | Inicia API e front-end juntos, com acompanhamento das alterações. |
+| `npm run dev:api` | Inicia somente a API. |
+| `npm run dev:web` | Inicia somente o Vite; a API deve estar em execução separadamente. |
+| `npm run build` | Gera o front-end de produção em `dist/`. |
+| `npm run preview` | Abre a prévia estática da build; não inicia a API. |
+| `npm start` | Inicia o Express e serve `dist/`, caso a build já exista. |
+| `npm test` | Executa os testes automatizados do projeto. |
 
-As rotas `/api/admin/*` exigem o cabeçalho `X-Admin-Token`, configurado somente no servidor. Não coloque esse token no front-end. Exemplo de cadastro:
+## Como o projeto está organizado
 
-```bash
-curl -X POST http://localhost:3001/api/admin/events \
-  -H "Content-Type: application/json" \
-  -H "X-Admin-Token: SEU_TOKEN_LOCAL" \
-  -d '{
-    "title": "Evento de exemplo",
-    "subtitle": "Uma descrição curta",
-    "category": "musica",
-    "date": "2027-02-20T19:00:00-03:00",
-    "location": "Local do evento",
-    "neighborhood": "Centro",
-    "price": 25,
-    "distance": 2.5,
-    "company": ["amigos", "sozinho"],
-    "age": 0,
-    "description": "Descrição e informações conferidas com a organização.",
-    "image": "https://example.com/evento.jpg",
-    "colors": ["#2449f5", "#ef3f47"],
-    "accent": "blue",
-    "featured": false
-  }'
-```
+| Caminho | Conteúdo |
+| --- | --- |
+| `index.html` | Estrutura da página, filtros e diálogos. |
+| `css/styles.css` | Identidade visual, componentes e responsividade. |
+| `js/app.js` | Interações, filtros, favoritos, perfil e chamadas à API. |
+| `js/events.js` | Categorias e dados usados na inicialização do catálogo demonstrativo. |
+| `assets/` | Recursos visuais locais, como o favicon. |
+| `server/index.js` | Inicialização do servidor e do banco. |
+| `server/app.js` | Rotas da API e entrega dos arquivos de produção. |
+| `server/db.js` | Estrutura e persistência do SQLite. |
+| `server/validation.js` | Validação dos dados de eventos. |
+| `server/app.test.js` | Testes da API e do banco. |
+| `docs/GUIA-DO-PROJETO.md` | Guia visual, componentes e fluxo de navegação. |
+| `vite.config.js` | Proxy da API durante o desenvolvimento. |
+| `netlify.toml` | Build e encaminhamento da API na hospedagem. |
 
-As categorias aceitas são `musica`, `gastronomia`, `arte`, `cinema`, `natureza`, `esporte` e `tecnologia`; as opções de companhia são `sozinho`, `amigos` e `casal`. A API valida os campos e aceita apenas URLs de imagem HTTPS.
+`data/` é criada para armazenar o banco local. `dist/` é gerada pelo build; as alterações da interface são feitas nos arquivos de origem.
 
-## Dados e limitações
+## Identidade visual
 
-- O banco é inicializado com 14 eventos de demonstração fictícios. Eles são marcados com `is_demo` e nunca devem ser apresentados como agenda real.
-- Eventos cadastrados pela administração ficam no SQLite. A API não tem painel administrativo: use as rotas protegidas com ferramenta local como `curl`.
-- Favoritos ficam no SQLite associados a um UUID aleatório armazenado no navegador. Não há conta, autenticação de usuário, sincronização entre dispositivos ou recuperação de favoritos.
-- Apelido e preferência de companhia do perfil continuam no `localStorage`.
-- A integração de busca pública da Eventbrite não faz parte desta versão; a referência pública atual não oferece um endpoint documentado de descoberta por cidade.
-- Distâncias continuam informadas manualmente, sem geolocalização ou cálculo de rota. O GoOut não vende ingressos.
-- Bootstrap, fontes e imagens ilustrativas são carregados de serviços externos e exigem internet.
+O visual combina cartazes de festival, fotos em colagem, tipografia grande e cartões com bordas e sombras marcadas.
 
-Antes de divulgar eventos, confirme organizador, data, horário, local, faixa etária, preço, disponibilidade e permissão para uso das imagens. A remoção de registros de demonstração é feita pela rota administrativa `DELETE /api/admin/events/:id`; os exemplos não são recriados após a primeira inicialização do banco.
+| Cor | Hexadecimal | Papel |
+| --- | --- | --- |
+| Azul royal | `#2449F5` | Cor principal e destaques. |
+| Vermelho | `#EF3F47` | Chamadas e elementos de apoio. |
+| Amarelo | `#FFE55C` | Botões e acentos. |
+| Rosa | `#FFAACB` | Blocos e decoração. |
+| Lilás | `#C9B1FF` | Contrastes visuais. |
+| Verde-lima | `#D1F66C` | Tags e acentos. |
+| Creme | `#FAF7EE` | Fundo da página. |
+| Escuro | `#161522` | Textos, bordas e sombras. |
 
-## Estrutura
+As fontes são **DM Sans** e **Space Grotesk**. A paleta, os componentes e o fluxo estão descritos no [guia do projeto](docs/GUIA-DO-PROJETO.md).
 
-```text
-index.html
-css/                    estilos da interface
-js/app.js               interface e chamadas à API
-js/events.js            categorias e dados de demonstração
-server/app.js           rotas REST, validação e arquivos estáticos
-server/db.js            esquema e inicialização SQLite
-server/validation.js    validação de eventos
-server/app.test.js      testes de integração
-```
+## Dados e integração
+
+Os eventos vêm de `GET /api/events`. Os favoritos ficam no SQLite, associados a um identificador aleatório salvo no navegador. O apelido e a preferência de companhia permanecem no `localStorage`.
+
+O banco começa com exemplos fictícios identificados na interface. A administração pode cadastrar, atualizar e remover eventos pelas rotas `/api/admin/events`, protegidas pelo cabeçalho `X-Admin-Token`. Para habilitá-las, configure `ADMIN_API_TOKEN` somente no ambiente do servidor.
+
+O projeto ainda não possui contas de usuário, sincronização de favoritos entre dispositivos, geolocalização ou recomendação por inteligência artificial. As distâncias são informadas no cadastro, e o GoOut não vende ingressos.
+
+## Publicação
+
+A configuração do Netlify executa `npm run build`, publica `dist/` e encaminha `/api/*` para a API no Render, em `https://goout-site.onrender.com`.
+
+No servidor, `PORT` define a porta, `DATABASE_PATH` define o caminho do SQLite e `ADMIN_API_TOKEN` é obrigatório quando `NODE_ENV=production`. O arquivo do banco precisa de armazenamento persistente para conservar eventos e favoritos após reinícios e novas publicações.
+
+---
+
+<p align="center"><strong>Menos indecisão. Mais histórias pra contar.</strong></p>
+<p align="center"><sub>Projeto acadêmico em desenvolvimento · Bootstrap · Google Fonts · Imagens ilustrativas do Unsplash</sub></p>
